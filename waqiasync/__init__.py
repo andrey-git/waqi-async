@@ -26,24 +26,22 @@ class WaqiClient(object):
         else:
             self._session = aiohttp.ClientSession()
 
-    @asyncio.coroutine
-    def search(self, keyword):
+    async def search(self, keyword):
         """Search for a station/location by name."""
-        return (yield from self._get(SEARCH_URL, keyword=keyword))
+        return await self._get(SEARCH_URL, keyword=keyword)
 
-    @asyncio.coroutine
-    def get_station_by_name(self, name):
+    async def get_station_by_name(self, name):
         """Get data by station name."""
-        return (yield from self._get(FEED_NAME_URL.format(name)))
+        return await self._get(FEED_NAME_URL.format(name))
 
-    @asyncio.coroutine
-    def get_station_by_number(self, number):
+    async def get_station_by_number(self, number):
         """Get data by station number."""
-        return (yield from self._get(FEED_NUMBER_URL.format(number)))
+        return await self._get(FEED_NUMBER_URL.format(number))
 
-    @asyncio.coroutine
-    def _get(self, path, **kwargs):
+    async def _get(self, path, **kwargs):
         with async_timeout.timeout(self._timeout):
-            resp = yield from self._session.get(
-                path, params=dict(self._params, **kwargs))
-            return (yield from resp.json())['data']
+            async with self._session.get(
+                path, params=dict(self._params, **kwargs)
+            ) as r:
+                result = await r.json()
+                return result["data"]
